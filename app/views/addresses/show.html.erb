@@ -1,0 +1,14 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Prvkey:</strong>
+  <%= @address.prvkey %>
+</p>
+
+<p>
+  <strong>Pubkey:</strong>
+  <%= @address.pubkey %>
+</p>
+
+<%= link_to 'Edit', edit_address_path(@address) %> |
+<%= link_to 'Back', addresses_path %>
