@@ -1,2 +1,2 @@
-json.extract! address, :id, :prvkey, :pubkey, :created_at, :updated_at
-json.url address_url(address, format: :json)
+json.extract! address, :id, :pub_address
+# json.url address_url(address, format: :json)
