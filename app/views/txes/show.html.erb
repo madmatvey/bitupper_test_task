@@ -1,0 +1,14 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Hash:</strong>
+  <%= @tx.txhash %>
+</p>
+
+<p>
+  <strong>Txdata:</strong>
+  <%= @tx.txdata %>
+</p>
+
+<%= link_to 'Edit', edit_tx_path(@tx) %> |
+<%= link_to 'Back', txes_path %>

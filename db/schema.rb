@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180105091644) do
+ActiveRecord::Schema.define(version: 20180105130145) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -20,6 +20,14 @@ ActiveRecord::Schema.define(version: 20180105091644) do
     t.string   "pubkey"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "txes", id: false, force: :cascade do |t|
+    t.string   "txhash",                    null: false
+    t.jsonb    "txdata",     default: "{}", null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.index ["txdata"], name: "index_txes_on_txdata", using: :gin
   end
 
 end

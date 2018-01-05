@@ -1,0 +1,2 @@
+class Tx < ApplicationRecord
+end
