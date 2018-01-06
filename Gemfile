@@ -18,7 +18,14 @@ gem 'coffee-rails', '~> 4.2'
 
 gem 'bitcoin-ruby', git: 'https://github.com/lian/bitcoin-ruby', branch: 'master', require: 'bitcoin'
 
-
+gem 'eventmachine'
+gem 'sidekiq'
+gem 'redis'
+gem 'sinatra', require: false
+gem 'active_job_status'
+gem 'redis-rails'
+gem 'readthis'
+gem 'hiredis'
 
 
 # Use jquery as the JavaScript library
