@@ -7,5 +7,6 @@ class CreateTxes < ActiveRecord::Migration[5.0]
       t.timestamps null: false
     end
     add_index  :txes, :txdata, using: :gin
+    add_index  :txes, :txhash, unique: true
   end
 end

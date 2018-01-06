@@ -28,6 +28,7 @@ ActiveRecord::Schema.define(version: 20180105130145) do
     t.datetime "created_at",                null: false
     t.datetime "updated_at",                null: false
     t.index ["txdata"], name: "index_txes_on_txdata", using: :gin
+    t.index ["txhash"], name: "index_txes_on_txhash", unique: true, using: :btree
   end
 
 end
