@@ -1,29 +1,19 @@
 <p id="notice"><%= notice %></p>
 
-<h1>Txes</h1>
+<h1>Transactions</h1>
 
 <table>
   <thead>
     <tr>
-      <th>Txhash</th>
-      <th>Txdata</th>
-      <th colspan="3"></th>
+      <th>Hash</th>
     </tr>
   </thead>
 
   <tbody>
     <% @txes.each do |tx| %>
       <tr>
-        <td><%= tx.txhash %></td>
-        <td><%= tx.txdata %></td>
-        <td><%= link_to 'Show', tx %></td>
-        <td><%= link_to 'Edit', edit_tx_path(tx) %></td>
-        <td><%= link_to 'Destroy', tx, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%= link_to tx.txhash, tx %></td>
       </tr>
     <% end %>
   </tbody>
 </table>
-
-<br>
-
-<%= link_to 'New Tx', new_tx_path %>

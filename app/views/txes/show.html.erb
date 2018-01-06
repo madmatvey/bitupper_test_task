@@ -6,9 +6,9 @@
 </p>
 
 <p>
-  <strong>Txdata:</strong>
-  <%= @tx.txdata %>
+  <strong>Bitcoin::Protocol::Tx:</strong>
+  <%= @tx.showtx.to_hash %>
 </p>
 
 <%= link_to 'Edit', edit_tx_path(@tx) %> |
-<%= link_to 'Back', tx_path %>
+<%= link_to 'Back', tx_index_path %>
