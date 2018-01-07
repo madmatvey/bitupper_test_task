@@ -20,15 +20,18 @@ class BitcoinNetworkMonitorJob < ApplicationJob
 
       def on_tx(tx)
         log.info { "received transaction: #{tx.hash}" }
-        ttx=Tx.new
-        ttx.txhash=tx.hash
-        ttx.txdata=tx.to_hash
-        if ttx.save
-          puts "TX #{ttx.txhash} SAVED!"
+        if Tx.find_by(txhash:tx.hash)==nil
+          ttx=Tx.new
+          ttx.txhash=tx.hash
+          ttx.txdata=tx.to_hash
+          if ttx.save
+            puts "TX #{ttx.txhash} SAVED!"
+          else
+            puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors}"
+          end
         else
-          puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors}"
+          puts "TX #{tx.txhash} is already in database!"
         end
-
         if tx.hash == @ask_tx
           @args[:result] = tx
           @args[:callback] ? (close_connection; @args[:callback].call(tx)) : EM.stop
@@ -182,7 +185,11 @@ class BitcoinNetworkMonitorJob < ApplicationJob
 
 
   def perform(*args)
-      puts "YEAH! I can do It! ARGV = #{ARGV}"
+      puts "YEAH! I can do It! ARGV = #{ARGV}
+
+      args: #{args}
+      
+      "
     if $0.include? "sidekiq"
 
       args = {
