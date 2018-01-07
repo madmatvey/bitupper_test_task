@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema.define(version: 20180105130145) do
+ActiveRecord::Schema.define(version: 20180107140622) do
 
   # These are extensions that must be enabled in order to support this database
   enable_extension "plpgsql"
@@ -20,6 +20,15 @@ ActiveRecord::Schema.define(version: 20180105130145) do
     t.string   "pubkey"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+  end
+
+  create_table "blocks", id: false, force: :cascade do |t|
+    t.string   "blhash",                    null: false
+    t.jsonb    "bldata",     default: "{}", null: false
+    t.datetime "created_at",                null: false
+    t.datetime "updated_at",                null: false
+    t.index ["bldata"], name: "index_blocks_on_bldata", using: :gin
+    t.index ["blhash"], name: "index_blocks_on_blhash", unique: true, using: :btree
   end
 
   create_table "txes", id: false, force: :cascade do |t|

@@ -38,7 +38,20 @@ class BitcoinNetworkMonitorJob < ApplicationJob
       def on_block(block)
         log.info { "received block: #{block.hash}" }
 
-        puts block.to_json
+        # puts block.to_json
+        puts "
+
+           =  =  =  =  =  =  B   L   O   C   K  =  =  =  =  =  =
+
+        "
+        bblock=Block.new
+        bblock.blhash=block.hash
+        bblock.bldata=block.to_hash
+        if bblock.save
+          puts "Block #{block.hash} SAVED!"
+        else
+          puts "Block #{block.hash} NOT SAVED! ERROR:#{block.errors}"
+        end
 
         if block.hash == @ask_block
           if @ask_tx
@@ -150,8 +163,8 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         if seeds.any?
           seeds.sample(count).map{|dns|
             host = IPSocket.getaddress(dns)
-            puts "Connecting to: #{host}"
-            puts "Arguments is: #{args}"
+            # puts "Connecting to: #{host}"
+            # puts "Arguments is: #{args}"
             connect(host, Bitcoin.network[:default_port], *args)
           }
         else
@@ -169,7 +182,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
 
 
   def perform(*args)
-      puts "YEAH! I can do It! $0 == #{$0} __FILE__ == #{__FILE__}"
+      puts "YEAH! I can do It! ARGV = #{ARGV}"
     if $0.include? "sidekiq"
 
       args = {
@@ -195,6 +208,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
 
 
       EM.run do
+        puts "EvenMachine Run! ARGS: #{args}"
         if args[:set_project]
           Bitcoin.network = args[:set_project].to_sym
           p Bitcoin.network_project

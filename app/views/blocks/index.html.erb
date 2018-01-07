@@ -1,0 +1,32 @@
+<p id="notice"><%= notice %></p>
+
+<h1>Recent Blocks</h1>
+
+<table>
+  <thead>
+    <tr>
+      <th>Height</th>
+      <th>Hash</th>
+      <th>Time</th>
+      <th>TX</th>
+      <th>Size</th>
+      <th>Total</th>
+      <th colspan="3"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <% @blocks.each do |block| %>
+      <tr>
+        <td><%= link_to block.showbl.bip34_block_height, block %></td>
+        <td><%= link_to block.blhash, block  %></td>
+        <td><%= Time.at(block.showbl.time) %></td>
+        <td><%= block.showbl.tx.size %></td>
+        <td><%= block.bldata["size"] %></td>
+        <td><%= block.total_value %> BTC </td>
+      </tr>
+    <% end %>
+  </tbody>
+</table>
+
+<br>

@@ -1,0 +1,36 @@
+<p>
+  <h1>Bitcoin - Block Details</h1>
+</p>
+<p id="notice"><%= notice %></p>
+
+<p>
+  <strong>Hash:</strong>
+  <%= @block.blhash %>
+</p>
+
+<p>
+  <strong>Height:</strong>
+  <%= @block.showbl.bip34_block_height %>
+</p>
+
+<p>
+  <strong>Time:</strong>
+  <%= Time.at(@block.showbl.time) %>
+</p>
+
+<p>
+  <strong>Transactions:</strong>
+  <%= @block.showbl.tx.size %>
+</p>
+
+<p>
+  <strong>Size:</strong>
+  <%= @block.bldata["size"] %> Bytes
+</p>
+
+<p>
+  <strong>Total Value:</strong>
+  <%= @block.total_value %> BTC
+</p>
+
+<%= link_to 'Back', block_index_path %>
