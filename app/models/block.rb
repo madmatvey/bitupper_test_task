@@ -8,6 +8,6 @@ class Block < ApplicationRecord
   def total_value
     sum = 0
     self.showbl.tx.map { |tx| tx.outputs.map { |e| sum+=e.value } }
-    sum.to_f/100000000
+    sum
   end
 end

@@ -166,7 +166,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         EM.connect(host, port, self, host, port, *args)
       end
 
-      def self.connect_random_from_dns(seeds=[], count=2, *args)
+      def self.connect_random_from_dns(seeds=[], count=1, *args)
         seeds = Bitcoin.network[:dns_seeds]-["testnet-seed.alexykot.me","dnsseed.test.webbtc.com"] unless seeds.any?
         puts "
         SEEDS: #{seeds}
@@ -195,7 +195,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         end
       end
 
-      def self.connect_known_nodes(count=2)
+      def self.connect_known_nodes(count=1)
         connect_random_from_dns(Bitcoin.network[:known_nodes], count)
       end
     end
@@ -265,9 +265,9 @@ class BitcoinNetworkMonitorJob < ApplicationJob
           p Bitcoin.network_project
         end
         if args[:use_node]
-          SimpleNode::Connection.connect_random_from_dns([args[:use_node]], 2, nil, args)
+          SimpleNode::Connection.connect_random_from_dns([args[:use_node]], 1, nil, args)
         else
-          SimpleNode::Connection.connect_random_from_dns([], 2, nil, args)
+          SimpleNode::Connection.connect_random_from_dns([], 1, nil, args)
         end
       end
 

@@ -4,4 +4,6 @@ class Tx < ApplicationRecord
   def showtx
     Bitcoin::P::Tx.from_hash(self.txdata)
   end
+
+  
 end

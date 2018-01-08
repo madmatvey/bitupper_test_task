@@ -23,7 +23,7 @@
         <td><%= Time.at(block.showbl.time) %></td>
         <td><%= block.showbl.tx.size %></td>
         <td><%= block.bldata["size"] %></td>
-        <td><%= block.total_value %> BTC </td>
+        <td><%= block.total_value.to_f/100000000 %> BTC </td>
       </tr>
     <% end %>
   </tbody>

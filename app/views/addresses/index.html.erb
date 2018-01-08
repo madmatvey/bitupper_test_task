@@ -6,16 +6,14 @@
   <thead>
     <tr>
       <th>Pub address</th>
-      <th colspan="3"></th>
+  
     </tr>
   </thead>
 
   <tbody>
     <% @addresses.each do |address| %>
       <tr>
-        <td><%= address.pub_address %></td>
-        <td><%= link_to 'Show', address %></td>
-        <td><%= link_to 'Destroy', address, method: :delete, data: { confirm: 'Are you sure?' } %></td>
+        <td><%= link_to address.pub_address, address %></td>
       </tr>
     <% end %>
   </tbody>
@@ -23,4 +21,4 @@
 
 <br>
 
-<%= link_to 'New Address', new_address_path %>
+<%= link_to 'Generate New Address', new_address_path %>

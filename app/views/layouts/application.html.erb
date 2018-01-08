@@ -10,5 +10,11 @@
 
   <body>
     <%= yield %>
+
+    <p>
+      <%= link_to 'Recent Blocks', block_index_path %>
+      <%= link_to 'Recent Tx', tx_index_path %>
+      <%= link_to 'Addresses', addresses_path %>
+    </p>
   </body>
 </html>
