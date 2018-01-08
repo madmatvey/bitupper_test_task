@@ -30,7 +30,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
             puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors}"
           end
         else
-          puts "TX #{tx.txhash} is already in database!"
+          puts "TX #{tx.hash} is already in database!"
         end
         if tx.hash == @ask_tx
           @args[:result] = tx
@@ -47,15 +47,18 @@ class BitcoinNetworkMonitorJob < ApplicationJob
            =  =  =  =  =  =  B   L   O   C   K  =  =  =  =  =  =
 
         "
-        bblock=Block.new
-        bblock.blhash=block.hash
-        bblock.bldata=block.to_hash
-        if bblock.save
-          puts "Block #{block.hash} SAVED!"
+        if Block.find_by(blhash:block.hash)==nil
+          bblock=Block.new
+          bblock.blhash=block.hash
+          bblock.bldata=block.to_hash
+          if bblock.save
+            puts "Block #{bblock.blhash} SAVED!"
+          else
+            puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors}"
+          end
         else
-          puts "Block #{block.hash} NOT SAVED! ERROR:#{block.errors}"
+          puts "Block #{block.hash} is already in database!"
         end
-
         if block.hash == @ask_block
           if @ask_tx
             if tx = block.tx.find{|tx| tx.hash == @ask_tx }
@@ -132,6 +135,8 @@ class BitcoinNetworkMonitorJob < ApplicationJob
       end
 
       def initialize(host, port, node=nil, opts={})
+
+        puts "INITIALIZE with options #{opts}"
         set_host(host, port)
         @node   = node
         @parser = Bitcoin::Protocol::Parser.new( self )
@@ -160,22 +165,36 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         EM.connect(host, port, self, host, port, *args)
       end
 
-      def self.connect_random_from_dns(seeds=[], count=1, *args)
+      def self.connect_random_from_dns(seeds=[], count=3, *args)
         seeds = Bitcoin.network[:dns_seeds] unless seeds.any?
-        puts "SEEDS: #{seeds}"
+        puts "
+        SEEDS: #{seeds}
+        COUNT: #{count}
+        ARGS: #{args}
+        "
         if seeds.any?
           seeds.sample(count).map{|dns|
-            host = IPSocket.getaddress(dns)
-            # puts "Connecting to: #{host}"
-            # puts "Arguments is: #{args}"
-            connect(host, Bitcoin.network[:default_port], *args)
+            begin
+              puts "
+              ASKING for DNS addres from #{dns}
+              "
+              host = IPSocket.getaddress(dns)
+              # puts "Connecting to: #{host}"
+              # puts "Arguments is: #{args}"
+            rescue => err
+              puts "
+              Ошибка: #{err}, адрес #{dns} не существует типа! :)
+              "
+              next
+            end
+            connect(host, Bitcoin.network[:default_port], *args) unless err
           }
         else
           raise "No DNS seeds available. Provide IP, configure seeds, or use different network."
         end
       end
 
-      def self.connect_known_nodes(count=1)
+      def self.connect_known_nodes(count=3)
         connect_random_from_dns(Bitcoin.network[:known_nodes], count)
       end
     end
@@ -184,30 +203,54 @@ class BitcoinNetworkMonitorJob < ApplicationJob
 
 
 
-  def perform(*args)
+  def perform(*opts)
       puts "YEAH! I can do It! ARGV = #{ARGV}
 
-      args: #{args}
-      
+      args: #{opts}
+
       "
     if $0.include? "sidekiq"
 
       args = {
-        ask_tx:    ARGV.find{|a| a[/tx=(.+)/, 1] } && $1,
-        ask_block: ARGV.find{|a| a[/block=(.+)/, 1] } && $1,
-        use_node:  ARGV.find{|a| a[/node=(.+)/, 1] } && $1,
-        send_tx:   ARGV.find{|a| a[/send_tx=(.+)/, 1] } && $1,
-        set_project:  ARGV.find{|a| a[/project=(.+)/, 1] } && $1,
+        ask_tx:    (op = opts.find{|a| a[:ask_tx]})?  op[:ask_tx] : nil,
+        ask_block: (op = opts.find{|a| a[:block]})?   op[:block]  : nil,
+        use_node:  (op = opts.find{|a| a[:node]})?    op[:node]   : nil,
+        send_tx:   (op = opts.find{|a| a[:send_tx]})? op[:send_tx]: nil,
+        set_project:  (op = opts.find{|a| a[:project]})? op[:project] : nil,
         callback:  proc{|i|
                      case i
                      when Bitcoin::Protocol::Block
                        puts "INFO  network: SAVING @ask_block: #{i.hash}"
-                       File.open("block-#{i.hash}.bin", 'wb'){|f| f.print i.payload }
-                       File.open("block-#{i.hash}.json", 'wb'){|f| f.print i.to_json }
+                       if Block.find_by(blhash:i.hash)==nil
+                         bblock=Block.new
+                         bblock.blhash=i.hash
+                         bblock.bldata=i.to_hash
+                         if bblock.save
+                           puts "Block #{bblock.blhash} SAVED!"
+                         else
+                           puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors}"
+                         end
+                       else
+                         puts "Block #{i.hash} is already in database!"
+                       end
+                      #  File.open("block-#{i.hash}.bin", 'wb'){|f| f.print i.payload }
+                      #  File.open("block-#{i.hash}.json", 'wb'){|f| f.print i.to_json }
                      when Bitcoin::Protocol::Tx
                        puts "INFO  network: SAVING @ask_tx: #{i.hash}"
-                       File.open("tx-#{i.hash}.bin", 'wb'){|f| f.print i.payload }
-                       File.open("tx-#{i.hash}.json", 'wb'){|f| f.print i.to_json }
+                       if Tx.find_by(txhash:i.hash)==nil
+                         ttx=Tx.new
+                         ttx.txhash=i.hash
+                         ttx.txdata=i.to_hash
+                         if ttx.save
+                           puts "TX #{ttx.txhash} SAVED!"
+                         else
+                           puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors}"
+                         end
+                       else
+                         puts "TX #{i.hash} is already in database!"
+                       end
+                      #  File.open("tx-#{i.hash}.bin", 'wb'){|f| f.print i.payload }
+                      #  File.open("tx-#{i.hash}.json", 'wb'){|f| f.print i.to_json }
                      end
                      EM.stop
                    }
@@ -221,9 +264,9 @@ class BitcoinNetworkMonitorJob < ApplicationJob
           p Bitcoin.network_project
         end
         if args[:use_node]
-          SimpleNode::Connection.connect_random_from_dns([args[:use_node]], 1, nil, args)
+          SimpleNode::Connection.connect_random_from_dns([args[:use_node]], 3, nil, args)
         else
-          SimpleNode::Connection.connect_random_from_dns([], 1, nil, args)
+          SimpleNode::Connection.connect_random_from_dns([], 3, nil, args)
         end
       end
 
