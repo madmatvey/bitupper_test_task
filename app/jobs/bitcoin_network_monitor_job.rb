@@ -1,6 +1,6 @@
 class BitcoinNetworkMonitorJob < ApplicationJob
   queue_as :default
-  $:.unshift( File.expand_path("../../lib", __FILE__) )
+  # $:.unshift( File.expand_path("../../lib", __FILE__) )
   require 'eventmachine'
   require 'bitcoin'
   require 'socket'
@@ -27,7 +27,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
           if ttx.save
             puts "TX #{ttx.txhash} SAVED!"
           else
-            puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors}"
+            puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors.full_messages}"
           end
         else
           puts "TX #{tx.hash} is already in database!"
@@ -54,7 +54,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
           if bblock.save
             puts "Block #{bblock.blhash} SAVED!"
           else
-            puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors}"
+            puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors.full_messages}"
           end
         else
           puts "Block #{block.hash} is already in database!"
@@ -88,10 +88,11 @@ class BitcoinNetworkMonitorJob < ApplicationJob
             if @ask_tx
               log.info { "ask for @ask_tx: #{@ask_tx}" }
               send_data Bitcoin::Protocol.getdata_pkt(:tx, [htb(@ask_tx)])
+              # send_data Bitcoin::Protocol.getdata_pkt(:tx, [hash])
             end
           end
           if @send_tx
-            tx = Bitcoin::P::Tx.from_json(File.read(@send_tx))
+            tx = Bitcoin::P::Tx.from_hash(@send_tx)
             send_data(Bitcoin::Protocol.pkt('tx', tx.to_payload))
             p [:sent, tx.hash]
           end
@@ -165,8 +166,8 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         EM.connect(host, port, self, host, port, *args)
       end
 
-      def self.connect_random_from_dns(seeds=[], count=3, *args)
-        seeds = Bitcoin.network[:dns_seeds] unless seeds.any?
+      def self.connect_random_from_dns(seeds=[], count=2, *args)
+        seeds = Bitcoin.network[:dns_seeds]-["testnet-seed.alexykot.me","dnsseed.test.webbtc.com"] unless seeds.any?
         puts "
         SEEDS: #{seeds}
         COUNT: #{count}
@@ -194,7 +195,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         end
       end
 
-      def self.connect_known_nodes(count=3)
+      def self.connect_known_nodes(count=2)
         connect_random_from_dns(Bitcoin.network[:known_nodes], count)
       end
     end
@@ -228,7 +229,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
                          if bblock.save
                            puts "Block #{bblock.blhash} SAVED!"
                          else
-                           puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors}"
+                           puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors.full_messages}"
                          end
                        else
                          puts "Block #{i.hash} is already in database!"
@@ -244,7 +245,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
                          if ttx.save
                            puts "TX #{ttx.txhash} SAVED!"
                          else
-                           puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors}"
+                           puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors.full_messages}"
                          end
                        else
                          puts "TX #{i.hash} is already in database!"
@@ -264,9 +265,9 @@ class BitcoinNetworkMonitorJob < ApplicationJob
           p Bitcoin.network_project
         end
         if args[:use_node]
-          SimpleNode::Connection.connect_random_from_dns([args[:use_node]], 3, nil, args)
+          SimpleNode::Connection.connect_random_from_dns([args[:use_node]], 2, nil, args)
         else
-          SimpleNode::Connection.connect_random_from_dns([], 3, nil, args)
+          SimpleNode::Connection.connect_random_from_dns([], 2, nil, args)
         end
       end
 

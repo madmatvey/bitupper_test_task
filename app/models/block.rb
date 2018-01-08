@@ -1,6 +1,6 @@
 class Block < ApplicationRecord
   self.primary_key = 'blhash'
-
+  has_many :txes, primary_key: :blhash
   def showbl
     Bitcoin::P::Block.from_hash(self.bldata)
   end
