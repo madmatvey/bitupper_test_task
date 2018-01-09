@@ -18,12 +18,21 @@
   <tbody>
     <% @blocks.each do |block| %>
       <tr>
-        <td><%= link_to block.showbl.bip34_block_height, block %></td>
-        <td><%= link_to block.blhash, block  %></td>
-        <td><%= Time.at(block.showbl.time) %></td>
-        <td><%= block.showbl.tx.size %></td>
-        <td><%= block.bldata["size"] %></td>
-        <td><%= block.total_value.to_f/100000000 %> BTC </td>
+        <% if block.orphane? %>
+          <td><%= link_to "[ ORPHANE! ]", block %></td>
+          <td><%= link_to block.blhash, block  %></td>
+          <td><%= Time.at(block.bldata["time"]) %></td>
+          <td><%= block.bldata["tx"].count %></td>
+          <td><%= block.bldata["size"] %></td>
+          <td><%= 0 %> BTC </td>
+        <% else %>
+          <td><%= link_to block.showbl.bip34_block_height, block %></td>
+          <td><%= link_to block.blhash, block  %></td>
+          <td><%= Time.at(block.showbl.time) %></td>
+          <td><%= block.showbl.tx.count %></td>
+          <td><%= block.bldata["size"] %></td>
+          <td><%= block.total_value.to_f/100000000 %> BTC </td>
+        <% end %>
       </tr>
     <% end %>
   </tbody>
