@@ -92,7 +92,8 @@ class BitcoinNetworkMonitorJob < ApplicationJob
             end
           end
           if @send_tx
-            tx = Bitcoin::P::Tx.from_hash(@send_tx)
+            puts "SENDING TX #{@send_tx}"
+            tx = Bitcoin::P::Tx.from_hash(Tx.find(@send_tx).txdata)
             send_data(Bitcoin::Protocol.pkt('tx', tx.to_payload))
             p [:sent, tx.hash]
           end

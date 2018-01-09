@@ -4,5 +4,9 @@
   <strong>Pub address:</strong>
   <%= @address.pub_address %>
 </p>
+<p>
+  <strong>Balance:</strong>
+  <%= @address.get_value.to_f/100000000 %> BTC
+</p>
 
 <%= link_to 'Back', addresses_path %>
