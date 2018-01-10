@@ -20,17 +20,17 @@ class BitcoinNetworkMonitorJob < ApplicationJob
 
       def on_tx(tx)
         log.info { "received transaction: #{tx.hash}" }
-        if Tx.find_by(txhash:tx.hash)==nil
+        unless Tx.where(txhash: tx.hash).take
           ttx=Tx.new
           ttx.txhash=tx.hash
           ttx.txdata=tx.to_hash
           if ttx.save
-            puts "TX #{ttx.txhash} SAVED!"
+            log.info {  "TX #{ttx.txhash} SAVED!" }
           else
-            puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors.full_messages}"
+            log.info {  "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors.full_messages}" }
           end
         else
-          puts "TX #{tx.hash} is already in database!"
+          log.info {  "TX #{tx.hash} is already in database!" }
         end
         if tx.hash == @ask_tx
           @args[:result] = tx
@@ -53,6 +53,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
           bblock.bldata=block.to_hash
           if bblock.save
             puts "Block #{bblock.blhash} SAVED!"
+            bblock.set_relate_txs
           else
             puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors.full_messages}"
           end
@@ -229,6 +230,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
                          bblock.bldata=i.to_hash
                          if bblock.save
                            puts "Block #{bblock.blhash} SAVED!"
+                           bblock.set_relate_txs
                          else
                            puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors.full_messages}"
                          end
