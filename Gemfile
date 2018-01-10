@@ -27,6 +27,8 @@ gem 'redis-rails'
 gem 'readthis'
 gem 'hiredis'
 
+gem 'colorize'
+
 
 # Use jquery as the JavaScript library
 gem 'jquery-rails'

@@ -59,6 +59,7 @@ GEM
       coffee-script-source
       execjs
     coffee-script-source (1.12.2)
+    colorize (0.8.1)
     concurrent-ruby (1.0.5)
     connection_pool (2.2.1)
     crass (1.0.3)
@@ -227,6 +228,7 @@ DEPENDENCIES
   bitcoin-ruby!
   byebug
   coffee-rails (~> 4.2)
+  colorize
   eventmachine
   hiredis
   jbuilder (~> 2.5)

@@ -4,6 +4,7 @@ class BitcoinNetworkMonitorJob < ApplicationJob
   require 'eventmachine'
   require 'bitcoin'
   require 'socket'
+  require 'colorize'
 
   class Bitcoin::Protocol::Parser; def log; stub=Object.new; def stub.method_missing(*a); end; stub; end; end
 
@@ -18,48 +19,59 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         log.info { "reject #{reject}" }
       end
 
-      def on_tx(tx)
-        log.info { "received transaction: #{tx.hash}" }
+      def save_tx(tx)
         unless Tx.where(txhash: tx.hash).take
           ttx=Tx.new
           ttx.txhash=tx.hash
           ttx.txdata=tx.to_hash
           if ttx.save
-            log.info {  "TX #{ttx.txhash} SAVED!" }
+            log.info {  "TX #{ttx.txhash} SAVED!".colorize(:green) }
+            ttx.block = Block.get_by_tx_hash(ttx.txhash).take
+            if ttx.block
+              log.info {  "TX #{ttx.txhash} added to BLOCK #{ttx.block.blhash}".colorize(:light_green) }
+            end
           else
-            log.info {  "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors.full_messages}" }
+            log.info {  "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors.full_messages}".colorize(:red) }
           end
         else
-          log.info {  "TX #{tx.hash} is already in database!" }
+          log.info {  "TX #{tx.hash} is already in database!".colorize(:light_green) }
         end
+      end
+
+      def on_tx(tx)
+        log.info { "received transaction: #{tx.hash}".colorize(:yellow) }
+        save_tx(tx)
         if tx.hash == @ask_tx
           @args[:result] = tx
           @args[:callback] ? (close_connection; @args[:callback].call(tx)) : EM.stop
         end
       end
 
-      def on_block(block)
-        log.info { "received block: #{block.hash}" }
-
-        # puts block.to_json
-        puts "
-
-           =  =  =  =  =  =  B   L   O   C   K  =  =  =  =  =  =
-
-        "
+      def save_block(block)
         if Block.find_by(blhash:block.hash)==nil
           bblock=Block.new
           bblock.blhash=block.hash
           bblock.bldata=block.to_hash
           if bblock.save
-            puts "Block #{bblock.blhash} SAVED!"
+            log.info { "Block #{bblock.blhash} SAVED!".colorize(:light_green) }
             bblock.set_relate_txs
+            log.info { "Find and save #{bblock.txes.count} transactions from this block".colorize(:green) }
           else
-            puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors.full_messages}"
+            log.info { "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors.full_messages}".colorize(:red) }
           end
         else
-          puts "Block #{block.hash} is already in database!"
+          log.info { "Block #{block.hash} is already in database!".colorize(:light_green) }
         end
+      end
+
+      def on_block(block)
+        log.info { "received block: #{block.hash}".colorize(:yellow) }
+        log.info { "
+
+           =  =  =  =  =  =  B   L   O   C   K  =  =  =  =  =  =
+
+        ".colorize(:green) }
+        save_block(block)
         if block.hash == @ask_block
           if @ask_tx
             if tx = block.tx.find{|tx| tx.hash == @ask_tx }
@@ -223,36 +235,13 @@ class BitcoinNetworkMonitorJob < ApplicationJob
         callback:  proc{|i|
                      case i
                      when Bitcoin::Protocol::Block
-                       puts "INFO  network: SAVING @ask_block: #{i.hash}"
-                       if Block.find_by(blhash:i.hash)==nil
-                         bblock=Block.new
-                         bblock.blhash=i.hash
-                         bblock.bldata=i.to_hash
-                         if bblock.save
-                           puts "Block #{bblock.blhash} SAVED!"
-                           bblock.set_relate_txs
-                         else
-                           puts "Block #{bblock.blhash} NOT SAVED! ERROR:#{bblock.errors.full_messages}"
-                         end
-                       else
-                         puts "Block #{i.hash} is already in database!"
-                       end
+                       puts "SAVING @ask_block: #{i.hash}"
+                       save_block(i)
                       #  File.open("block-#{i.hash}.bin", 'wb'){|f| f.print i.payload }
                       #  File.open("block-#{i.hash}.json", 'wb'){|f| f.print i.to_json }
                      when Bitcoin::Protocol::Tx
                        puts "INFO  network: SAVING @ask_tx: #{i.hash}"
-                       if Tx.find_by(txhash:i.hash)==nil
-                         ttx=Tx.new
-                         ttx.txhash=i.hash
-                         ttx.txdata=i.to_hash
-                         if ttx.save
-                           puts "TX #{ttx.txhash} SAVED!"
-                         else
-                           puts "TX #{ttx.txhash} NOT SAVED! ERROR:#{ttx.errors.full_messages}"
-                         end
-                       else
-                         puts "TX #{i.hash} is already in database!"
-                       end
+                       save_tx(i)
                       #  File.open("tx-#{i.hash}.bin", 'wb'){|f| f.print i.payload }
                       #  File.open("tx-#{i.hash}.json", 'wb'){|f| f.print i.to_json }
                      end
